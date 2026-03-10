@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUMATIF - SMA Islam Darussalam</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            padding: 20px; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container { max-width: 850px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: relative; z-index: 10; }
+        .kop-surat { text-align: center; border-bottom: 3px double #000; margin-bottom: 20px; padding-bottom: 10px; }
+        .kop-surat h2 { margin: 5px 0; color: #1a5d1a; }
+        .basmalah { text-align: center; font-size: 24px; margin: 20px 0; font-family: "Times New Roman", serif; }
+        
+        .options-container { margin-top: 15px; }
+        .option-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+            cursor: pointer; 
+            transition: all 0.2s;
+        }
+        .option-item:hover { background: #f0f7f0; border-color: #1a5d1a; }
+        .option-item input { margin-right: 15px; transform: scale(1.3); cursor: pointer; }
+        .option-item label { cursor: pointer; width: 100%; font-size: 16px; }
+
+        #start-page { text-align: center; padding: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        
+        #exam-page { display: none; }
+        .identitas-header { display: flex; justify-content: space-between; background: #e8f5e9; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
+        .timer { color: #d9534f; font-size: 20px; }
+        
+        .question { margin-bottom: 30px; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px; transition: all 0.3s; }
+        .question p { font-size: 17px; line-height: 1.6; margin-top: 0; text-align: justify; }
+        
+        .invalid-question { background-color: #fff5f5 !important; border: 2px solid #feb2b2 !important; }
+        
+        .btn-utama { background: #1a5d1a; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 10px; }
+        .btn-utama:hover { background: #144614; }
+        
+        #result-area { display: none; text-align: center; }
+        .warning-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 400px; text-align: left; color: #856404; font-size: 14px; }
+        .blue-box { background-color: #ebf8ff; border: 1px solid #bee3f8; color: #2b6cb0; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
+        
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 10000; text-align: center; padding-top: 20%; }
+        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #1a5d1a; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        canvas { background: #fff; border: 1px solid #ddd; max-width: 100%; height: auto; }
+
+        #watermark {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999; opacity: 0.07;
+            display: none; flex-wrap: wrap; justify-content: space-around;
+            align-content: space-around; font-size: 18px; transform: rotate(-20deg);
+        }
+        #watermark span { margin: 40px; }
+
+        #dev-reset { position: fixed; bottom: 5px; right: 5px; opacity: 0.2; z-index: 10001; }
+        #dev-reset:hover { opacity: 1; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="dev-reset">
+    <button onclick="localStorage.clear(); location.reload();" style="font-size: 10px; cursor: pointer; background: #d9534f; color: white; border: none; padding: 5px; border-radius: 3px;">RESET DATA TEST</button>
+</div>
+
+<div id="watermark"></div>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text" style="font-size: 20px; font-weight: bold; color: #1a5d1a;">Sedang Menghitung & Mengirim Jawaban...</div>
+</div>
+
+<div class="container">
+    <div class="kop-surat">
+        <h2>SUMATIF BAB IV</h2>
+        <p><b>PERSAMAAN DAN PERTIDAKSAMAAN LINEAR</b></p>
+        <p>SMA ISLAM DARUSSALAM - TAHUN PELAJARAN 2025/2026</p>
+    </div>
+
+    <div id="start-page">
+        <div class="basmalah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+        <div id="setup-form">
+            <div class="input-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="nama-siswa" placeholder="Masukkan nama Anda">
+            </div>
+            <div class="input-group">
+                <label>Kelas</label>
+                <select id="kelas-siswa">
+                    <option value="">-- Pilih Kelas --</option>
+                    <option value="X-A">X-A</option><option value="X-B">X-B</option>
+                    <option value="X-C">X-C</option><option value="X-D">X-D</option>
+                    <option value="X-E">X-E</option>
+                </select>
+            </div>
+            <div class="warning-box">
+                ⚠️ <b>KEAMANAN UJIAN:</b><br>
+                Sistem mendeteksi pindah tab.<br>
+                🕒 <b>Batas Pengumpulan:</b><br>
+                Rabu 11 Maret 2026, 15:00 WIB.<br>
+                <hr>
+                <input type="checkbox" id="pakta"> <label for="pakta" style="cursor:pointer">Saya mengerjakan soal dengan jujur.</label>
+            </div>
+            <button type="button" class="btn-utama" onclick="mulaiUjian()">MULAI UJIAN</button>
+        </div>
+    </div>
+
+    <div id="exam-page">
+        <div class="identitas-header">
+            <div id="display-info">Peserta: -</div>
+            <div class="timer">⏳ <span id="time">--:--:--</span></div>
+        </div>
+
+        <div id="questions-container">
+            <div class="question" id="q-block-1">
+                <p>1. Himpunan penyelesaian dari sistem persamaan linear berikut ini adalah {a,b,c}. Nilai dari $a \cdot b \cdot c$ adalah...</p>
+                $$ \begin{cases}a+4b-c=1\\ -a+2b+c=2\\ 2a+6b+c=-8\end{cases} $$
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans1" value="12" id="ans1a"> <label for="ans1a">A. 12</label></div>
+                    <div class="option-item"><input type="radio" name="ans1" value="6" id="ans1b"> <label for="ans1b">B. 6</label></div>
+                    <div class="option-item"><input type="radio" name="ans1" value="-6" id="ans1c"> <label for="ans1c">C. -6</label></div>
+                    <div class="option-item"><input type="radio" name="ans1" value="-12" id="ans1d"> <label for="ans1d">D. -12</label></div>
+                    <div class="option-item"><input type="radio" name="ans1" value="0" id="ans1e"> <label for="ans1e">E. 0</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-2">
+                <p>2. Sistem pertidaksamaan linear yang sesuai untuk daerah penyelesaian pada gambar di bawah ini adalah...</p>
+                <div style="text-align: center; margin: 15px 0;">
+                    <canvas id="canvasSoal2" width="400" height="350"></canvas>
+                </div>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans2" value="A" id="ans2a"> <label for="ans2a">A. 2x + y ≤ 30; x + 2y ≥ 24; x ≥ 0; y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans2" value="B" id="ans2b"> <label for="ans2b">B. 2x + y ≥ 30; x + 4y ≤ 24; x ≥ 0; y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans2" value="C" id="ans2c"> <label for="ans2c">C. x + 2y ≤ 24; 2x + y ≤ 30; x ≥ 0; y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans2" value="D" id="ans2d"> <label for="ans2d">D. 4x + 2y ≤ 30; x + 2y ≥ 12; x ≥ 0; y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans2" value="E" id="ans2e"> <label for="ans2e">E. x + y ≤ 24; x + y ≤ 30; x ≥ 0; y ≥ 0</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-3">
+                <p>3. Sebuah pabrik lensa memiliki 3 buah mesin, yaitu A, B, dan C. Jika ketiga mesin bekerja, maka 5.700 lensa dapat dihasilkan dalam satu minggu. Jika hanya mesin A dan B yang bekerja, maka 3.400 lensa dapat dihasilkan dalam satu minggu. Jika hanya mesin A dan C yang bekerja, maka 4.200 lensa dapat dihasilkan dalam satu minggu. Banyak lensa yang dihasilkan tiap-tiap mesin dalam satu minggu adalah…</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans3" value="1500" id="ans3a"> <label for="ans3a">A. 1.500 Lensa</label></div>
+                    <div class="option-item"><input type="radio" name="ans3" value="1900" id="ans3b"> <label for="ans3b">B. 1.900 Lensa</label></div>
+                    <div class="option-item"><input type="radio" name="ans3" value="2300" id="ans3c"> <label for="ans3c">C. 2.300 Lensa</label></div>
+                    <div class="option-item"><input type="radio" name="ans3" value="2500" id="ans3d"> <label for="ans3d">D. 2.500 Lensa</label></div>
+                    <div class="option-item"><input type="radio" name="ans3" value="1100" id="ans3e"> <label for="ans3e">E. 1.100 Lensa</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-4">
+                <p>4. Seorang penjahit memiliki persediaan 20 m kain polos dan 15 m kain bergaris untuk membuat 2 jenis pakaian. Outer memerlukan 1 m kain polos dan 3 m kain bergaris. Kemeja memerlukan 2 m kain polos dan 1 m kain bergaris. Outer dijual dengan harga Rp 150.000,- per potong dan Kemeja dijual dengan harga Rp 100.000,- per potong. Penghasilan maksimum yang dapat diperoleh penjahit tersebut adalah…</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans4" value="1000000" id="ans4a"> <label for="ans4a">A. Rp 1.000.000,-</label></div>
+                    <div class="option-item"><input type="radio" name="ans4" value="1150000" id="ans4b"> <label for="ans4b">B. Rp 1.150.000,-</label></div>
+                    <div class="option-item"><input type="radio" name="ans4" value="1250000" id="ans4c"> <label for="ans4c">C. Rp 1.200.000,-</label></div>
+                    <div class="option-item"><input type="radio" name="ans4" value="1500000" id="ans4d"> <label for="ans4d">D. Rp 1.500.000,-</label></div>
+                    <div class="option-item"><input type="radio" name="ans4" value="950000" id="ans4e"> <label for="ans4e">E. Rp 950.000,-</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-5">
+                <p>5. Jika $x,y,z$ merupakan solusi dari SPLTV
+                $$ \begin{cases}x+y=10\\ y+z=23\\ z+x=7\end{cases} $$
+                <p>Maka nilai dari $x+y+z$ adalah...</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans5" value="15" id="ans5a"> <label for="ans5a">A. 15</label></div>
+                    <div class="option-item"><input type="radio" name="ans5" value="20" id="ans5b"> <label for="ans5b">B. 20</label></div>
+                    <div class="option-item"><input type="radio" name="ans5" value="25" id="ans5c"> <label for="ans5c">C. 25</label></div>
+                    <div class="option-item"><input type="radio" name="ans5" value="30" id="ans5d"> <label for="ans5d">D. 30</label></div>
+                    <div class="option-item"><input type="radio" name="ans5" value="40" id="ans5e"> <label for="ans5e">E. 40</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-6">
+                <p>6. Tiara membuat dua jenis kotak kado yaitu kotak kado polos dan bermotif untuk dijual dengan modal Rp 500.000,- Pembuatan kotak kado polos menghabiskan biaya Rp 10.000,- sedangkan kotak kado bermotif menghabiskan biaya sebesar Rp 15.000,- Dalam satu hari Tiara hanya dapat membuat kotak kado paling banyak 40 buah. Keuntungan dari hasil penjualan satu buah kotak kado polos sebesar Rp 2.500,- dan kotak kado bermotif Rp 3.000,- Model yang tepat untuk soal cerita ini adalah...</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans6" value="A" id="ans6a"> <label for="ans6a">A. 2x + 3y ≤ 100; x + y ≤ 40; x,y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans6" value="B" id="ans6b"> <label for="ans6b">B. 3x + 2y ≤ 100; x + y ≤ 40; x,y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans6" value="C" id="ans6c"> <label for="ans6c">C. 2x + 3y ≥ 100; x + y ≤ 40; x,y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans6" value="D" id="ans6d"> <label for="ans6d">D. 2x + 3y ≤ 100; x + y ≥ 40; x,y ≥ 0</label></div>
+                    <div class="option-item"><input type="radio" name="ans6" value="E" id="ans6e"> <label for="ans6e">E. x + y ≤ 100; 2x + 3y ≤ 40; x,y ≥ 0</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-7">
+                <p>7. Di Jakarta Cheese Cake Factory, tersedia tiga jenis kue andalan: kue keju premium, brownies coklat, dan bolen pisang keju. Toko ini menawarkan tiga paket promo untuk memudahkan pelanggan. Paket A terdiri dari 2 kue keju, 1 brownies, dan 1 bolen pisang dengan harga total Rp 190.000. Paket B berisi 1 kue keju, 3 brownies, dan 2 bolen pisang dijual seharga Rp 260.000. Sementara Paket C berisi 3 kue keju, 2 brownies, dan 1 bolen pisang dihargai Rp 270.000. Model yang tepat untuk soal cerita ini adalah...</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans7" value="A" id="ans7a"> <label for="ans7a">A. $2x+y+z=270.000$; $x+3y+2z=190.000$; $3x+2y+z=260.000$</label></div>
+                    <div class="option-item"><input type="radio" name="ans7" value="B" id="ans7b"> <label for="ans7b">B. $x+2y+z=190.000$; $3x+y+2z=260.000$; $2x+3y+z=270.000$</label></div>
+                    <div class="option-item"><input type="radio" name="ans7" value="C" id="ans7c"> <label for="ans7c">C. $2x+y+z=190.000$; $x+3y+2z=260.000$; $3x+2y+z=270.000$</label></div>
+                    <div class="option-item"><input type="radio" name="ans7" value="D" id="ans7d"> <label for="ans7d">D. $x+y+z=190.000$; $2x+2y+2z=260.000$; $3x+3y+3z=270.000$</label></div>
+                    <div class="option-item"><input type="radio" name="ans7" value="E" id="ans7e"> <label for="ans7e">E. $3x+y+z=190.000$; $x+2y+2z=260.000$; $2x+2y+z=270.000$</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-8">
+                <p>8. Menjelang lebaran Jakarta Cheese Cake Factory mengeluarkan Paket Spesial yang berisi 1 kue keju, 2 brownies, dan 1 bolen pisang dengan harga Rp 150.000. Berdasarkan perbandingan harga Paket Spesial dengan total harga jika membeli satuan, maka pembeli Paket Spesial tersebut...</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans8" value="A" id="ans8a"> <label for="ans8a">A. Untung Rp 30.000</label></div>
+                    <div class="option-item"><input type="radio" name="ans8" value="B" id="ans8b"> <label for="ans8b">B. Untung Rp 20.000</label></div>
+                    <div class="option-item"><input type="radio" name="ans8" value="C" id="ans8c"> <label for="ans8c">C. Rugi Rp 10.000</label></div>
+                    <div class="option-item"><input type="radio" name="ans8" value="D" id="ans8d"> <label for="ans8d">D. Rugi Rp 40.000</label></div>
+                    <div class="option-item"><input type="radio" name="ans8" value="E" id="ans8e"> <label for="ans8e">E. Harga sama saja</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-9">
+                <p>9. Diketahui sistem persamaan linear tiga variabel sebagai berikut:</p>
+                $$ \begin{cases}x-2y-2z=1\\ 3x-y+z=-1\\ 2x+y-z=6\end{cases} $$
+                <p>Berdasarkan penyelesaian sistem tersebut, manakah pernyataan di bawah ini yang <b>BENAR</b>?</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans9" value="A" id="ans9a"> <label for="ans9a">A. Nilai $y + z = 0$</label></div>
+                    <div class="option-item"><input type="radio" name="ans9" value="B" id="ans9b"> <label for="ans9b">B. Solusi $x + y + z = 5$</label></div>
+                    <div class="option-item"><input type="radio" name="ans9" value="C" id="ans9c"> <label for="ans9c">C. Jika $x=1$, maka $y=-2$</label></div>
+                    <div class="option-item"><input type="radio" name="ans9" value="D" id="ans9d"> <label for="ans9d">D. Nilai $x = 5$</label></div>
+                    <div class="option-item"><input type="radio" name="ans9" value="E" id="ans9e"> <label for="ans9e">E. Nilai $z = 10$</label></div>
+                </div>
+            </div>
+
+            <div class="question" id="q-block-10">
+                <p>10. Diketahui sistem persamaan linear tiga variabel sebagai berikut:</p>
+                $$ \begin{cases}x-2y-2z=1\\ 3x-y+z=-1\\ 2x+y-z=6\end{cases} $$
+                <p>Berdasarkan penyelesaian sistem tersebut, manakah pernyataan di bawah ini yang <b>SALAH</b>?</p>
+                <div class="options-container">
+                    <div class="option-item"><input type="radio" name="ans10" value="A" id="ans10a"><label for="ans10a">A. Hasil kali ketiga variabel ($x \cdot y \cdot z$) adalah -4</label></div>
+                    <div class="option-item"><input type="radio" name="ans10" value="B" id="ans10b"><label for="ans10b">B. Nilai dari $x^2 + y^2 + z^2$ sama dengan 9</label></div>
+                    <div class="option-item"><input type="radio" name="ans10" value="C" id="ans10c"><label for="ans10c">C. Variabel $y$ memiliki nilai terbesar di antara ketiga variabel tersebut</label></div>
+                    <div class="option-item"><input type="radio" name="ans10" value="D" id="ans10d"><label for="ans10d">D. Nilai dari $3x + 2y - z$ adalah 11</label></div>
+                    <div class="option-item"><input type="radio" name="ans10" value="E" id="ans10e"><label for="ans10e">E. Selisih antara variabel $x$ dan $z$ adalah 3</label></div>
+            
+                </div>
+            </div>
+    
+            <button type="button" class="btn-utama" onclick="validasiKirim()">KIRIM JAWABAN</button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="color: #1a5d1a;">Alhamdulillah, Selesai!</h2>
+        <div id="status-display" style="padding:20px; background:#f8f9fa; border-radius:10px; margin-bottom:20px; text-align: left;"></div>
+        <div class="blue-box">
+            <b>Catatan:</b> Jawaban dan Skor telah terekam di database ujian.
+        </div>
+        <button type="button" class="btn-utama" onclick="location.reload()">Tutup Halaman</button>
+    </div>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyPM3qVIICUDubiX-Xda15kj0rDvG1CLVeGyOg6gjGuecWmpnvkw-_MVOXaDabF3mh-/exec';
+    const JADWAL_SELESAI = new Date("2026-03-11T15:00:00").getTime();
+    const DURASI_DETIK = 7200; 
+
+    // UPDATE KUNCI JAWABAN SESUAI PERUBAHAN
+    const KUNCI_JAWABAN = {
+        ans1: "6",
+        ans2: "C",
+        ans3: "1500", 
+        ans4: "1200000",
+        ans5: "20",
+        ans6: "A",
+        ans7: "C",
+        ans8: "B", 
+        ans9: "A",
+        ans10: "D" 
+    };
+    
+    const TOTAL_SOAL = 10;
+    const POIN_PER_SOAL = 10;
+    const PENALTI_PER_PELANGGARAN = 10;
+
+    let timerAktif = false;
+    let intervalTimer;
+    let jumlahPelanggaran = parseInt(localStorage.getItem('pelanggaran_count')) || 0;
+    let logPelanggaran = localStorage.getItem('pelanggaran_log') || "";
+    let deviceID = localStorage.getItem('student_device_id') || ('DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase());
+    localStorage.setItem('student_device_id', deviceID);
+
+    window.onload = () => {
+        if (localStorage.getItem('exam_submitted') === 'true') {
+            tampilkanSudahSubmit();
+            return;
+        }
+
+        const sekarang = Date.now();
+        if (sekarang > JADWAL_SELESAI) {
+            tampilkanStatusWaktu("SUDAH BERAKHIR", "Batas waktu pengerjaan ujian telah habis.");
+            return;
+        }
+
+        if (localStorage.getItem('exam_active') === 'true') {
+            document.getElementById('nama-siswa').value = localStorage.getItem('siswa_nama');
+            document.getElementById('kelas-siswa').value = localStorage.getItem('siswa_kelas');
+            document.getElementById('pakta').checked = true;
+            mulaiUjian(true); 
+        }
+
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            const savedValue = localStorage.getItem('save_' + radio.name);
+            if (savedValue === radio.value) radio.checked = true;
+            
+            radio.addEventListener('change', (e) => {
+                localStorage.setItem('save_' + e.target.name, e.target.value);
+                e.target.closest('.question').classList.remove('invalid-question');
+            });
+        });
+
+        gambarGrafikSoal2();
+    };
+
+    function tampilkanStatusWaktu(judul, pesan) {
+        document.getElementById('setup-form').innerHTML = `
+            <div class="warning-box" style="color: #2b6cb0; background: #ebf8ff; border-color: #bee3f8;">
+                <h3 style="margin-top:0;">UJIAN ${judul}</h3>
+                <p>${pesan}</p>
+            </div>
+            <button class="btn-utama" onclick="location.reload()">Refresh Halaman</button>
+        `;
+    }
+
+    function tampilkanSudahSubmit() {
+        document.getElementById('start-page').innerHTML = `
+            <div class="warning-box" style="color: #c53030; background: #fff5f5; border-color: #feb2b2;">
+                <h2 style="margin-top:0;">AKSES DITOLAK</h2>
+                <p>Sistem mendeteksi Anda telah mengirimkan jawaban sebelumnya.</p>
+                <button onclick="localStorage.clear(); location.reload();" style="font-size: 10px; background: none; border: 1px solid #ccc; cursor: pointer;">Reset for testing</button>
+            </div>
+        `;
+    }
+
+    function proteksiLayar() {
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                navigator.clipboard.writeText("");
+                alert("Screenshot dilarang!");
+                catatPelanggaran("Screenshot");
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'Shift')) {
+                e.preventDefault();
+            }
+        });
+        const wm = document.getElementById('watermark');
+        const nama = localStorage.getItem('siswa_nama') || "PESERTA";
+        wm.style.display = 'flex';
+        wm.innerHTML = Array(60).fill(`<span>${nama}</span>`).join("");
+    }
+
+    function gambarGrafikSoal2() {
+        const canvas = document.getElementById('canvasSoal2');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const offsetX = 50, originY = 300, skalaX = 10, skalaY = 8;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.beginPath(); ctx.fillStyle = "rgba(0,0,0,0.8)";
+        ctx.moveTo(offsetX, originY - (12 * skalaY)); 
+        ctx.lineTo(offsetX, originY - (30 * skalaY));
+        ctx.lineTo(offsetX + (12 * skalaX), originY - (6 * skalaY)); 
+        ctx.closePath(); ctx.fill();
+
+        ctx.beginPath(); ctx.strokeStyle = "black"; ctx.lineWidth = 2;
+        ctx.moveTo(offsetX, originY + 20); ctx.lineTo(offsetX, originY - 260);
+        ctx.moveTo(offsetX - 20, originY); ctx.lineTo(offsetX + 300, originY); ctx.stroke();
+        
+        ctx.beginPath(); ctx.moveTo(offsetX, originY - (30 * skalaY)); ctx.lineTo(offsetX + (15 * skalaX), originY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(offsetX, originY - (12 * skalaY)); ctx.lineTo(offsetX + (24 * skalaX), originY); ctx.stroke();
+        
+        ctx.font = "14px Arial"; ctx.fillStyle = "black";
+        ctx.fillText("30", offsetX - 25, originY - (30 * skalaY) + 5);
+        ctx.fillText("12", offsetX - 25, originY - (12 * skalaY) + 5);
+        ctx.fillText("15", offsetX + (15 * skalaX) - 5, originY + 20);
+        ctx.fillText("24", offsetX + (24 * skalaX) - 5, originY + 20);
+    }
+
+    function mulaiUjian(isResume = false) {
+        const nama = document.getElementById('nama-siswa').value.trim();
+        const kelas = document.getElementById('kelas-siswa').value;
+        if (!nama || !kelas || !document.getElementById('pakta').checked) {
+            alert("Lengkapi identitas!"); return;
+        }
+
+        if (!isResume) {
+            localStorage.setItem('exam_active', 'true');
+            localStorage.setItem('siswa_nama', nama);
+            localStorage.setItem('siswa_kelas', kelas);
+            localStorage.setItem('exam_start_time', Math.floor(Date.now() / 1000));
+        }
+
+        document.getElementById('display-info').innerText = `Peserta: ${nama} (${kelas})`;
+        document.getElementById('start-page').style.display = 'none';
+        document.getElementById('exam-page').style.display = 'block';
+        
+        if (window.MathJax) {
+            window.MathJax.typesetPromise();
+        }
+
+        setTimeout(gambarGrafikSoal2, 100); 
+        timerAktif = true;
+        proteksiLayar();
+        jalankanTimer();
+    }
+
+    function jalankanTimer() {
+        const timerDisplay = document.getElementById('time');
+        const startTime = parseInt(localStorage.getItem('exam_start_time'));
+        
+        if(intervalTimer) clearInterval(intervalTimer);
+        
+        intervalTimer = setInterval(() => {
+            if (!timerAktif) { clearInterval(intervalTimer); return; }
+            const sekarangMS = Date.now();
+            const sisaDurasi = DURASI_DETIK - (Math.floor(sekarangMS / 1000) - startTime);
+            const sisaJadwal = Math.floor((JADWAL_SELESAI - sekarangMS) / 1000);
+            let sisa = Math.min(sisaDurasi, sisaJadwal);
+
+            if (sisa <= 0) {
+                timerAktif = false;
+                alert("WAKTU HABIS!");
+                kirimData();
+                return;
+            }
+
+            let h = Math.floor(sisa / 3600), m = Math.floor((sisa % 3600) / 60), s = sisa % 60;
+            timerDisplay.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    function catatPelanggaran(jenis) {
+        if (!timerAktif) return;
+        jumlahPelanggaran++;
+        logPelanggaran += `${new Date().toLocaleTimeString()}(${jenis}), `;
+        localStorage.setItem('pelanggaran_count', jumlahPelanggaran);
+        localStorage.setItem('pelanggaran_log', logPelanggaran);
+        alert(`⚠️ PELANGGARAN DETEKSI!\nJangan keluar dari halaman!`);
+    }
+
+    document.addEventListener("visibilitychange", () => { 
+        if (document.hidden && timerAktif) catatPelanggaran("Tab"); 
+    });
+
+    async function kirimData() {
+        timerAktif = false;
+        clearInterval(intervalTimer);
+        document.getElementById('loading-overlay').style.display = 'block';
+        
+        let skorMurni = 0;
+        const getVal = (name) => {
+            const el = document.querySelector(`input[name="${name}"]:checked`);
+            return el ? el.value : "";
+        };
+
+        for (let i = 1; i <= TOTAL_SOAL; i++) {
+            if (getVal('ans' + i) === KUNCI_JAWABAN['ans' + i]) {
+                skorMurni += POIN_PER_SOAL;
+            }
+        }
+
+        const penalti = jumlahPelanggaran * PENALTI_PER_PELANGGARAN;
+        const skorAkhir = Math.max(0, skorMurni - penalti);
+
+        try {
+            const params = new URLSearchParams();
+            params.append('nama', localStorage.getItem('siswa_nama'));
+            params.append('kelas', localStorage.getItem('siswa_kelas'));
+            for(let i=1; i<=TOTAL_SOAL; i++) params.append('ans'+i, getVal('ans'+i));
+            params.append('skor', skorAkhir);
+            params.append('pelanggaran', jumlahPelanggaran);
+            params.append('logPelanggaran', logPelanggaran);
+            params.append('deviceID', deviceID);
+
+            const resp = await fetch(scriptURL, { method: 'POST', body: params });
+            const result = await resp.text();
+            
+            if (result === "Success") {
+                localStorage.setItem('exam_submitted', 'true'); 
+                localStorage.removeItem('exam_active');
+                for(let i=1; i<=TOTAL_SOAL; i++) localStorage.removeItem('save_ans' + i);
+                
+                document.getElementById('loading-overlay').style.display = 'none';
+                tampilkanHasil(skorAkhir, skorMurni, penalti);
+            } else {
+                alert("Gagal mengirim data.");
+                document.getElementById('loading-overlay').style.display = 'none';
+                timerAktif = true;
+                jalankanTimer();
+            }
+        } catch (e) { 
+            document.getElementById('loading-overlay').style.display = 'none';
+            alert("Koneksi Error! Coba lagi."); 
+            timerAktif = true;
+            jalankanTimer();
+        }
+    }
+
+    function validasiKirim() {
+    // CEK APAKAH SEMUA SOAL SUDAH DIJAWAB
+    let isValid = true;
+    for (let i = 1; i <= TOTAL_SOAL; i++) {
+        if (!document.querySelector(`input[name="ans${i}"]:checked`)) {
+            document.getElementById(`q-block-${i}`).classList.add('invalid-question');
+            isValid = false;
+        } else {
+            document.getElementById(`q-block-${i}`).classList.remove('invalid-question');
+        }
+    }
+
+    if (!isValid) { 
+        alert("Beberapa soal belum dijawab!"); 
+        return; 
+    }
+    
+    // KONFIRMASI KIRIM
+    if (confirm("Kirim jawaban sekarang?")) {
+        kirimData();
+    }
+}
+
+    function tampilkanHasil(skorAkhir, skorMurni, penalti) {
+        document.getElementById('exam-page').style.display = 'none';
+        document.getElementById('watermark').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+        
+        document.getElementById('status-display').innerHTML = `
+            <div style="text-align:center; margin-bottom: 25px;">
+                <div style="font-size: 16px; color: #666; margin-bottom: 5px;">SKOR AKHIR</div>
+                <div style="font-size: 64px; font-weight: bold; color: #1a5d1a; line-height: 1;">${skorAkhir}</div>
+            </div>
+            
+            <div style="background:#fff5f5; padding:15px; border-radius:8px; border:1px solid #feb2b2; margin-bottom:15px;">
+                <p style="margin:0; color:#c53030;"><b>Rincian Penilaian:</b></p>
+                <ul style="margin:10px 0; font-size: 15px;">
+                    <li>Skor Jawaban Benar: <b>${skorMurni}</b></li>
+                    <li>Total Pelanggaran: <b>${jumlahPelanggaran} kali</b></li>
+                    <li style="color: #d9534f;">Penalti (Disiplin): <b>-${penalti}</b></li>
+                </ul>
+            </div>
+        `;
+    }
+</script>
+</body>
+</html>
